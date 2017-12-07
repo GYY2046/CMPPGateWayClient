@@ -84,7 +84,7 @@ namespace SmsGatewayClient.CMPP
             var targetCount = (phones.Length - 1) / 100 + 1; // 群发短信最多支持100条
 
             var contentBytes = SmsMessage.Ucs2Encoding.GetBytes(content);
-            var contentCount = (contentBytes.Length - 1) / 140 + 1; // 短信内容最多支持140字节
+            var contentCount = (contentBytes.Length - 1) / 134 + 1; // 短信内容最多支持140字节
 
             var result = new CmppSubmitMessage[targetCount * contentCount];
 
