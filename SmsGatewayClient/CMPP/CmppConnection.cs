@@ -19,6 +19,7 @@ namespace SmsGatewayClient.CMPP
         private readonly string serviceId;
         private readonly string appPhone;
         private readonly RollingWindowThrottler thrott = null;//new RollingWindowThrottler(20, TimeSpan.FromSeconds(1.0)); //先固定写死
+        public static object _lock = new object();
         //private readonly ILog _log;
         /// <summary>
         /// 创建 CMPP 连接
@@ -30,7 +31,7 @@ namespace SmsGatewayClient.CMPP
         /// <param name="serviceId"></param>
         /// <param name="appPhone"></param>
         public CmppConnection(string host, int port, string cpId, string password, string serviceId, string appPhone,RollingWindowThrottler thrott,ILog log)
-            : base(host, port)
+            : base(host, port,log)
         {
             this.cpId = cpId;
             this.password = password;
@@ -38,6 +39,7 @@ namespace SmsGatewayClient.CMPP
             this.appPhone = appPhone;
             this.thrott = thrott;
             this._log = log;
+            
         }
 
         /// <summary>
@@ -68,8 +70,8 @@ namespace SmsGatewayClient.CMPP
 
             var resp = new CmppConnectRespMessage(SendAndWait(socket, message));
             //Console.WriteLine("注册响应:"+resp.ToString());
+            _log.DebugFormat("注册响应:{0}", resp.ToString());
             Assert.AreEqual(message.SequenceId, resp.SequenceId);
-
             return resp.Status;
         }
 
@@ -81,16 +83,31 @@ namespace SmsGatewayClient.CMPP
         /// <returns></returns>
         protected override SmsMessage[] PackageMessages(string[] phones, string content)
         {
+            //if (this.messageList != null && this.messageList.Count > 0)
+            //{
+            //    foreach (var item in messageList)
+            //    {
+            //        _log.InfoFormat("打印日志:{0}", item);
+            //    }
+            //    lock (_lock)
+            //    {
+            //        messageList.Clear();
+            //    }
+            //}
             var targetCount = (phones.Length - 1) / 100 + 1; // 群发短信最多支持100条
 
             var contentBytes = SmsMessage.Ucs2Encoding.GetBytes(content);
-            var contentCount = (contentBytes.Length - 1) / 134 + 1; // 短信内容最多支持140字节
+            var contentCount = (contentBytes.Length - 1) / 132 + 1; // 如果使用6位格式的协议头则短信内容最多可以有134个字节（140-6）
+                                                                    // 如果使用7位格式的协议头则短信内容最多可以有132个字节 （140-7） 但是发133个字节会出现乱码所以发132个字节
 
             var result = new CmppSubmitMessage[targetCount * contentCount];
 
             for (int i = 0; i < targetCount; i++)
             {
-                var udhiId = (byte) Random.Next(byte.MaxValue);
+                //var udhiId = (byte) Random.Next(byte.MaxValue);
+                ushort udhiId = (ushort)Random.Next(ushort.MaxValue);
+                byte[] byteArr = BitConverter.GetBytes(udhiId);
+                Array.Reverse(byteArr);
                 for (int j = 0; j < contentCount; j++)
                 {
                     var message = new CmppSubmitMessage
@@ -107,8 +124,8 @@ namespace SmsGatewayClient.CMPP
                         };
                     message.DestTerminalId = new string[message.DestUserTl];
                     Array.Copy(phones, i * 100, message.DestTerminalId, 0, (int)message.DestUserTl);
-                    Udhi(message, contentBytes, j, contentCount,udhiId);
-
+                    Udhi(message, contentBytes, j, contentCount, byteArr,139,7);
+                    //_log.InfoFormat("udhiId:{0}",udhiId);
                     result[i * j + j] = message;
                 }
             }
@@ -132,7 +149,9 @@ namespace SmsGatewayClient.CMPP
             var receiveByte = SendAndWait(socket, message);
             var resp = new CmppSubmitRespMessage(receiveByte);
             _log.InfoFormat("底层发送完毕:{0},resp:{1}", message.GetSequenceId(),resp.SequenceId);
+            //_log.InfoFormat("socket连接状态:{0}", socket.Connected);
             Assert.AreEqual(((CmppSubmitMessage)message).SequenceId, resp.SequenceId);
+            //_log.InfoFormat("socket连接状态:{0}", socket.Connected);
             return resp.Result;
 
         }
@@ -147,11 +166,13 @@ namespace SmsGatewayClient.CMPP
             {
                 SequenceId = NextSequenceId()
             };
-
+            _log.InfoFormat("心跳数据发送");
             var resp = new CmppActiveTestRespMessage(SendAndWait(smsSocket, message));
+            _log.InfoFormat(string.Format("心跳数据:message:{0}-resp：{1}", message.SequenceId, resp.SequenceId));
             Assert.AreEqual(message.SequenceId, resp.SequenceId);
-            //每过一段时间发送一段心跳检测
-            Thread.Sleep(60 * 1000); // TODO: 配置
+            //每过一段时间发送一段心跳检测,实际短信网关的心跳检测间隔要小于60，且会主动关闭连接，所以设置为小于60秒的时间间隔
+            //Thread.Sleep(45 * 1000); // TODO: 配置 不行
+            Thread.Sleep(20 * 1000); // TODO: 配置 新调整  2018-03-06
         }
 
         /// <summary>

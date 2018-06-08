@@ -1,8 +1,0 @@
-E:\GIT\HaiNan\Boco.Ivr.Platform.Oracle\SMS\SmsGatewayClient\bin\Debug\SmsGatewayClient.dll
-E:\GIT\HaiNan\Boco.Ivr.Platform.Oracle\SMS\SmsGatewayClient\bin\Debug\SmsGatewayClient.pdb
-E:\GIT\HaiNan\Boco.Ivr.Platform.Oracle\SMS\SmsGatewayClient\bin\Debug\Microsoft.VisualStudio.QualityTools.UnitTestFramework.dll
-E:\GIT\HaiNan\Boco.Ivr.Platform.Oracle\SMS\SmsGatewayClient\obj\Debug\SmsGatewayClient.dll
-E:\GIT\HaiNan\Boco.Ivr.Platform.Oracle\SMS\SmsGatewayClient\obj\Debug\SmsGatewayClient.pdb
-E:\GIT\HaiNan\Boco.Ivr.Platform.Oracle\SMS\SmsGatewayClient\bin\Debug\log4net.dll
-E:\GIT\HaiNan\Boco.Ivr.Platform.Oracle\SMS\SmsGatewayClient\bin\Debug\log4net.xml
-E:\GIT\HaiNan\Boco.Ivr.Platform.Oracle\SMS\SmsGatewayClient\obj\Debug\SmsGatewayClient.csprojResolveAssemblyReference.cache

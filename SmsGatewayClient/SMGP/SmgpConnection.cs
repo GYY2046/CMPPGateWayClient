@@ -96,7 +96,7 @@ namespace SmsGatewayClient.SMGP
                     };
                     message.DestTermId = new string[message.DestTermIdCount];
                     Array.Copy(phones, i * 100, message.DestTermId, 0, (int)message.DestTermIdCount);
-                    Udhi(message, contentBytes, j, contentCount, udhiId);
+                    //Udhi(message, contentBytes, j, contentCount, udhiId);
 
                     result[i * j + j] = message;
                 }
@@ -127,10 +127,8 @@ namespace SmsGatewayClient.SMGP
             {
                 SequenceId = NextSequenceId()
             };
-
             var resp = new SmgpActiveTestRespMessage(SendAndWait(smsSocket, message));
             Assert.AreEqual(message.SequenceId, resp.SequenceId);
-
             Thread.Sleep(3 * 60 * 1000); // TODO: 配置
         }
 

@@ -1,4 +1,5 @@
-﻿using System.Net.Sockets;
+﻿using System;
+using System.Net.Sockets;
 using System.Threading;
 
 namespace SmsGatewayClient.Common
@@ -27,7 +28,10 @@ namespace SmsGatewayClient.Common
         /// 请求中的 SocketError
         /// </summary>
         public SocketError SocketError { get; set; }
-
+        /// <summary>
+        /// 新增，消息的发送时间，用来判断消息接收是否超时
+        /// </summary>
+        public DateTime SendTime { get; set; }
         /// <summary>
         /// 返回结果
         /// </summary>

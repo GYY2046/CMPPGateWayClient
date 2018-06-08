@@ -33,6 +33,7 @@ namespace SmsGatewayClient.Net
         public SmsSocket(AddressFamily addressFamily, SocketType socketType, ProtocolType protocolType, int trafficControl) 
             : base(addressFamily, socketType, protocolType)
         {
+            this.DontFragment = true;
             this.trafficControl = trafficControl;
             traffic = new Semaphore(trafficControl, trafficControl);
         }
